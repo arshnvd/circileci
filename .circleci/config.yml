@@ -1,36 +1,53 @@
+# USING WORKSPACES
+
+# version: 2
+# jobs:
+#   one:
+#     docker:
+#       - image: circleci/ruby:2.4.1
+#     steps:
+#       - checkout
+#       - run: echo "A first hello"
+#       - run: mkdir -p my_workspace
+#       - run: echo "Trying out workspaces" > my_workspace/echo-output
+#       - persist_to_workspace:
+#           root: my_workspace
+#           paths:
+#             - echo-output
+#   two:
+#     docker:
+#       - image: circleci/ruby:2.4.1
+#     steps:
+#       - checkout
+#       - run: echo "A more fimiliar hi"
+#       - attach_workspace:
+#           at: my_workspace
+#       - run: |
+#           if [[ $(cat my_workspace/echo-output) == "Trying out workspaces" ]]; then
+#             echo "It worked"
+#           else
+#             echo "Nope!"; exit 1
+#           fi
+# workflows:
+#   version: 2
+#   a_and_b:
+#     jobs:
+#       - one
+#       - two:
+#           requires:
+#             - one
+
+# USING CACHES
+
 version: 2
 jobs:
-  one:
+  build:
     docker:
-      - image: circleci/ruby:2.4.1
+      - image: circleci/node:4.8.2
     steps:
       - checkout
-      - run: echo "A first hello"
-      - run: mkdir -p my_workspace
-      - run: echo "Trying out workspaces" > my_workspace/echo-output
-      - persist_to_workspace:
-          root: my_workspace
+      - run: npm install
+      - save_cache:
+          key: npm-cache-{{ .Branch }}-{{ checksum "package.json" }}
           paths:
-            - echo-output
-  two:
-    docker:
-      - image: circleci/ruby:2.4.1
-    steps:
-      - checkout
-      - run: echo "A more fimiliar hi"
-      - attach_workspace:
-          at: my_workspace
-      - run: |
-          if [[ $(cat my_workspace/echo-output) == "Trying out workspaces" ]]; then
-            echo "It worked"
-          else
-            echo "Nope!"; exit 1
-          fi
-workflows:
-  version: 2
-  a_and_b:
-    jobs:
-      - one
-      - two:
-          requires:
-            - one
+            - node_modules
